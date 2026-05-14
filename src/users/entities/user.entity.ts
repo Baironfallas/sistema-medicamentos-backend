@@ -1,6 +1,8 @@
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { Exclude } from 'class-transformer';
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Medication } from 'src/medications/entities/medication.entity';
+import { ChatSession } from 'src/chat-sessions/entities/chat-session.entity';
 
 @Entity('users')
 export class User {
@@ -41,5 +43,11 @@ export class User {
         type: 'timestamp',
     })
     createdAt!: Date;
+
+    @OneToMany(() => Medication, (medication) => medication.user)
+    medications!: Medication[];
+
+    @OneToMany(() => ChatSession, (session) => session.user)
+    chatSessions!: ChatSession[];
 
 }
