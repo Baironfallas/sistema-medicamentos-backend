@@ -1,12 +1,4 @@
-import {
-    Column,
-    CreateDateColumn,
-    Entity,
-    JoinColumn,
-    ManyToOne,
-    OneToMany,
-    PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Schedule } from 'src/schedules/entities/schedule.entity';
 
@@ -19,7 +11,12 @@ export class Medication {
     @Column({ name: 'user_id' })
     userId!: number;
 
-    @ManyToOne(() => User, { onDelete: 'RESTRICT' })
+    @ManyToOne(() => User, (user) => user.medications, {
+        nullable: false,
+        eager: false,
+        onDelete: 'RESTRICT',
+        onUpdate: 'RESTRICT',
+    })
     @JoinColumn({ name: 'user_id' })
     user!: User;
 
