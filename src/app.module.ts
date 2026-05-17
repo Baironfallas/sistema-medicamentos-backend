@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -10,11 +11,24 @@ import { MedicationIntakesModule } from './medication-intakes/medication-intakes
 import { ChatSessionsModule } from './chat-sessions/chat-sessions.module';
 import { ChatMessagesModule } from './chat-messages/chat-messages.module';
 import { AuthModule } from './auth/auth.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+
+    ScheduleModule.forRoot(),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
+            : undefined,
+        level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
+        redact: ['req.headers.authorization'],
+      },
     }),
 
     TypeOrmModule.forRootAsync({
@@ -23,17 +37,14 @@ import { AuthModule } from './auth/auth.module';
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.getOrThrow<string>('DATABASE_HOST'),
-        port: parseInt(
-          configService.get<string>('DATABASE_PORT', '3306'),
-          10,
-        ),
+        port: parseInt(configService.get<string>('DATABASE_PORT', '3306'), 10),
         username: configService.get<string>('DATABASE_USER', 'root'),
         password: configService.get<string>('DATABASE_PASSWORD', ''),
         database: configService.getOrThrow<string>('DATABASE_NAME'),
-        synchronize: false,
-        dropSchema: false,
+        synchronize: true,
+        dropSchema: true,
         autoLoadEntities: true,
-        timezone: 'Z',
+        timezone: '-06:00',
         dateStrings: true,
       }),
     }),
@@ -50,4 +61,4 @@ import { AuthModule } from './auth/auth.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
