@@ -1,8 +1,11 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,} from 'typeorm';
+import {Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn,} from 'typeorm';
 import { Schedule } from 'src/schedules/entities/schedule.entity';
 import { IntakeStatus } from '../../common/enums/intake-status.enum';
 
 @Entity('medication_intakes')
+@Index('uq_intake_schedule_scheduled_at', ['scheduleId', 'scheduledAt'], {
+    unique: true,
+})
 export class MedicationIntake {
 
     @PrimaryGeneratedColumn({ name: 'intake_id' })

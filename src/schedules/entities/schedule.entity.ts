@@ -23,9 +23,6 @@ export class Schedule {
     @Column({ type: 'time' })
     hour!: string;
 
-    @Column({ name: 'interval_hours', type: 'int', unsigned: true, nullable: true })
-    intervalHours!: number | null;
-
     @OneToMany(() => MedicationIntake, (intake) => intake.schedule)
     intakes!: MedicationIntake[];
 }

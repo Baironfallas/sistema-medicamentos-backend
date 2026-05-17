@@ -1,12 +1,18 @@
+import './dayjs-setup';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor';
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const port = Number(process.env.PORT ?? 3000);
+
+  
+app.useLogger(app.get(Logger));
 
   app.enableCors({
     origin: true,
@@ -14,7 +20,7 @@ async function bootstrap(): Promise<void> {
   });
 
   app.useGlobalFilters(new HttpExceptionFilter());
-
+  app.useGlobalInterceptors(new DateFormatInterceptor());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -34,8 +40,6 @@ async function bootstrap(): Promise<void> {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(port);
-
-  console.log(`API corriendo en http://localhost:${port}/api`);
 }
 
 void bootstrap();
