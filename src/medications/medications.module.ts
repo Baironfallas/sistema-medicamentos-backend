@@ -13,4 +13,4 @@ import { MedicationIntake } from 'src/medication-intakes/entities/medication-int
   controllers: [MedicationsController],
   providers: [MedicationsService],
 })
-export class MedicationsModule {}
+export class MedicationsModule { }

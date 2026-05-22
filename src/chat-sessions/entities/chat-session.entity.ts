@@ -24,10 +24,10 @@ export class ChatSession {
     title!: string | null;
 
     @CreateDateColumn({ name: 'started_at', type: 'timestamp' })
-    startedAt!: Date;
+    startedAt!: string;
 
     @UpdateDateColumn({ name: 'last_activity', type: 'timestamp' })
-    lastActivity!: Date;
+    lastActivity!: string;
 
     @OneToMany(() => ChatMessage, (message) => message.session)
     messages!: ChatMessage[];

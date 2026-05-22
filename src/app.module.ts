@@ -12,6 +12,8 @@ import { ChatSessionsModule } from './chat-sessions/chat-sessions.module';
 import { ChatMessagesModule } from './chat-messages/chat-messages.module';
 import { AuthModule } from './auth/auth.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { GeminiModule } from './gemini/gemini.module';
+import { ChatContextsModule } from './chat-contexts/chat-contexts.module';
 
 @Module({
   imports: [
@@ -56,6 +58,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     ChatSessionsModule,
     ChatMessagesModule,
     AuthModule,
+    GeminiModule,
+    ChatContextsModule,
   ],
 
   controllers: [AppController],

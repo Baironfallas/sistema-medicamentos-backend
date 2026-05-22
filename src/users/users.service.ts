@@ -24,7 +24,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async create(data: CreateUserData): Promise<UserResponseDto> {
     const emailExists = await this.userRepository.count({

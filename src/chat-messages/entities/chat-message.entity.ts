@@ -26,9 +26,9 @@ export class ChatMessage {
     })
     sender!: MessageSender;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'varchar', length: 2000 })
     content!: string;
 
     @CreateDateColumn({ name: 'sent_at', type: 'timestamp' })
-    sentAt!: Date;
+    sentAt!: string;
 }

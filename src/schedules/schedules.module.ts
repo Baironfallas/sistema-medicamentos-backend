@@ -6,4 +6,4 @@ import { Schedule } from './entities/schedule.entity';
   imports: [TypeOrmModule.forFeature([Schedule])],
   exports: [TypeOrmModule],
 })
-export class SchedulesModule {}
+export class SchedulesModule { }

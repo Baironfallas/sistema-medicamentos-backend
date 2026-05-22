@@ -39,4 +39,4 @@ type JwtExpiresIn = SignOptions['expiresIn'];
   providers: [AuthService, JwtStrategy],
   exports: [AuthService, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }
