@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards,} from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards, } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -15,7 +15,7 @@ import { IntakeResponseDto } from 'src/medication-intakes/dto/intake-response.dt
 @Controller('medications')
 export class MedicationsController {
 
-    constructor(private readonly medicationsService: MedicationsService) {}
+    constructor(private readonly medicationsService: MedicationsService) { }
 
     @Post()
     create(

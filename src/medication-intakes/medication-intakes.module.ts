@@ -18,4 +18,4 @@ import { Schedule } from 'src/schedules/entities/schedule.entity';
   ],
   exports: [MedicationIntakesService],
 })
-export class MedicationIntakesModule {}
+export class MedicationIntakesModule { }

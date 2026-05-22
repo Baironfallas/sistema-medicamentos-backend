@@ -20,7 +20,7 @@ export class DateFormatInterceptor implements NestInterceptor {
         if (obj === null || obj === undefined) {
             return obj;
         }
-        
+
         // Si es una fecha, convertirla manteniendo el valor de Costa Rica
         if (obj instanceof Date) {
             // ✅ SOLUCIÓN: Formatear como string sin conversión de zona
@@ -28,11 +28,11 @@ export class DateFormatInterceptor implements NestInterceptor {
             const crDate = dayjs(obj).tz('America/Costa_Rica', true);
             return crDate.format('YYYY-MM-DDTHH:mm:ss');
         }
-        
+
         if (Array.isArray(obj)) {
             return obj.map((item: unknown) => this.transformDates(item));
         }
-        
+
         if (this.isPlainObject(obj)) {
             const transformed: Record<string, unknown> = {};
             for (const key of Object.keys(obj)) {
@@ -40,7 +40,7 @@ export class DateFormatInterceptor implements NestInterceptor {
             }
             return transformed;
         }
-        
+
         return obj;
     }
 
