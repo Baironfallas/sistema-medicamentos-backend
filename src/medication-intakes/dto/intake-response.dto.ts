@@ -5,4 +5,7 @@ export class IntakeResponseDto {
     scheduledAt!: string;
     respondedAt!: string | null;
     status!: IntakeStatus;
+    name!: string;
+    quantityTaken!: number;
+    remainingPills!: number;
 }

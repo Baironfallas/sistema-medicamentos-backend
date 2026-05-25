@@ -78,10 +78,7 @@ export class MedicationIntakesService {
     return this.changePendingStatus(intake, IntakeStatus.OMITTED);
   }
 
-  private async changePendingStatus(
-    intake: MedicationIntake,
-    status: IntakeStatus.TAKEN | IntakeStatus.OMITTED,
-  ): Promise<MedicationIntake> {
+  private async changePendingStatus(intake: MedicationIntake, status: IntakeStatus.TAKEN | IntakeStatus.OMITTED,): Promise<MedicationIntake> {
     if (intake.status !== IntakeStatus.PENDING) {
       throw new BadRequestException('Esta toma ya fue respondida.');
     }
@@ -94,13 +91,33 @@ export class MedicationIntakesService {
     return this.intakeRepo.save(intake);
   }
 
+  private async toResponseDto(intake: MedicationIntake): Promise<IntakeResponseDto> {
+    const medication = intake.schedule.medication;
 
-  private toResponseDto(intake: MedicationIntake): IntakeResponseDto {
+    const takenCount = await this.countTakenIntakes(medication.medicationId);
+
+    const quantityTaken = intake.status === IntakeStatus.TAKEN ? medication.quantityPerIntake : 0;
+
+    const remainingPills = Math.max(medication.totalPills - takenCount * medication.quantityPerIntake,0,);
+
+
     return {
       intakeId: intake.intakeId,
       scheduledAt: intake.scheduledAt,
       respondedAt: intake.respondedAt,
       status: intake.status,
+      name: intake.schedule.medication.name,
+      quantityTaken,
+      remainingPills,
     };
+  }
+
+  private async countTakenIntakes(medicationId: number): Promise<number> {
+    return this.intakeRepo
+      .createQueryBuilder('intake')
+      .innerJoin('intake.schedule', 'schedule')
+      .where('schedule.medicationId = :medicationId', { medicationId })
+      .andWhere('intake.status = :status', { status: IntakeStatus.TAKEN })
+      .getCount();
   }
 }

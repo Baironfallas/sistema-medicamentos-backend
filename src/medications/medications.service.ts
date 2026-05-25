@@ -181,19 +181,35 @@ export class MedicationsService {
 
       const intakes = await this.intakeRepo
         .createQueryBuilder('intake')
-        .innerJoin('intake.schedule', 'schedule')
-        .innerJoin('schedule.medication', 'medication')
+        .innerJoinAndSelect('intake.schedule', 'schedule')
+        .innerJoinAndSelect('schedule.medication', 'medication')
         .where('medication.userId = :userId', { userId })
         .andWhere('intake.scheduledAt LIKE :date', { date: `${dateStr}%` })
         .orderBy('intake.scheduledAt', 'ASC')
         .getMany();
 
-      return intakes.map((i) => ({
-        intakeId: i.intakeId,
-        scheduledAt: formatLocalDateTimeForResponse(i.scheduledAt) ?? '',
-        respondedAt: formatLocalDateTimeForResponse(i.respondedAt),
-        status: i.status,
-      }));
+
+      return Promise.all(intakes.map(async (i) => {
+        const medication = i.schedule.medication;
+
+        const takenCount = await this.countTakenIntakes(medication.medicationId,);
+
+        const remainingPills = Math.max(this.calculatePillsRemaining(medication, takenCount), 0,);
+
+        return {
+          intakeId: i.intakeId,
+          scheduledAt: formatLocalDateTimeForResponse(i.scheduledAt) ?? '',
+          respondedAt: formatLocalDateTimeForResponse(i.respondedAt),
+          status: i.status,
+          name: medication.name,
+          quantityTaken:
+            i.status === IntakeStatus.TAKEN
+              ? medication.quantityPerIntake
+              : 0,
+          remainingPills,
+        };
+      }),
+      );
 
     } catch (error: unknown) {
       if (error instanceof HttpException) throw error;
