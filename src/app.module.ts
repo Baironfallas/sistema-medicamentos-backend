@@ -15,6 +15,26 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
+const getPositiveIntegerConfig = (
+  configService: ConfigService,
+  key: string,
+  defaultValue: number,
+): number => {
+  const rawValue = configService.get<string>(key);
+
+  if (rawValue === undefined || rawValue.trim() === '') {
+    return defaultValue;
+  }
+
+  const parsedValue = Number(rawValue);
+
+  if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+    throw new Error(`La variable de entorno ${key} debe ser un número entero positivo.`);
+  }
+
+  return parsedValue;
+};
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,7 +49,11 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
             ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
             : undefined,
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
-        redact: ['req.headers.authorization'],
+        redact: [
+          'req.headers.authorization',
+          'req.body.password',
+          'req.body.refreshToken',
+        ],
       },
     }),
 
@@ -39,7 +63,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       useFactory: (configService: ConfigService) => ({
         type: 'mysql',
         host: configService.getOrThrow<string>('DATABASE_HOST'),
-        port: parseInt(configService.get<string>('DATABASE_PORT', '3306'), 10),
+        port: getPositiveIntegerConfig(configService, 'DATABASE_PORT', 3306),
         username: configService.get<string>('DATABASE_USER', 'root'),
         password: configService.get<string>('DATABASE_PASSWORD', ''),
         database: configService.getOrThrow<string>('DATABASE_NAME'),
@@ -55,23 +79,23 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => [
         {
-          ttl: configService.get<number>('THROTTLE_TTL', 60000),
-          limit: configService.get<number>('THROTTLE_LIMIT', 100),
+          ttl: getPositiveIntegerConfig(configService, 'THROTTLE_TTL', 60000),
+          limit: getPositiveIntegerConfig(configService, 'THROTTLE_LIMIT', 100),
         },
         {
           name: 'register',
-          ttl: configService.get<number>('REGISTER_THROTTLE_TTL', 60000),
-          limit: configService.get<number>('REGISTER_THROTTLE_LIMIT', 3),
+          ttl: getPositiveIntegerConfig(configService, 'REGISTER_THROTTLE_TTL', 60000),
+          limit: getPositiveIntegerConfig(configService, 'REGISTER_THROTTLE_LIMIT', 3),
         },
         {
           name: 'login',
-          ttl: configService.get<number>('LOGIN_THROTTLE_TTL', 60000),
-          limit: configService.get<number>('LOGIN_THROTTLE_LIMIT', 5),
+          ttl: getPositiveIntegerConfig(configService, 'LOGIN_THROTTLE_TTL', 60000),
+          limit: getPositiveIntegerConfig(configService, 'LOGIN_THROTTLE_LIMIT', 5),
         },
         {
           name: 'chat',
-          ttl: configService.get<number>('CHAT_THROTTLE_TTL', 60000),
-          limit: configService.get<number>('CHAT_THROTTLE_LIMIT', 10),
+          ttl: getPositiveIntegerConfig(configService, 'CHAT_THROTTLE_TTL', 60000),
+          limit: getPositiveIntegerConfig(configService, 'CHAT_THROTTLE_LIMIT', 10),
         },
       ],
     }),

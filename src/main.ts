@@ -7,20 +7,50 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor';
 
-async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  const port = Number(process.env.PORT ?? 3000);
+const getCorsOrigins = (): boolean | string[] => {
+  if (process.env.NODE_ENV !== 'production') {
+    return true;
+  }
 
-  
-app.useLogger(app.get(Logger));
+  const rawOrigins = process.env.CORS_ORIGIN;
+
+  if (!rawOrigins || rawOrigins.trim() === '') {
+    return false;
+  }
+
+  return rawOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+};
+
+const shouldEnableSwagger = (): boolean => {
+  if (process.env.NODE_ENV !== 'production') {
+    return true;
+  }
+
+  return process.env.SWAGGER_ENABLED === 'true';
+};
+
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  const port = process.env.PORT ?? 3000;
+
+  app.useLogger(app.get(Logger));
 
   app.enableCors({
-    origin: true,
-    credentials: true,
+    origin: getCorsOrigins(),
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   app.useGlobalFilters(new HttpExceptionFilter());
+
   app.useGlobalInterceptors(new DateFormatInterceptor());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -29,15 +59,17 @@ app.useLogger(app.get(Logger));
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Sistema de Medicamentos API')
-    .setDescription('Backend API for a medication reminder mobile application.')
-    .setVersion('1.0.0')
-    .addBearerAuth()
-    .build();
+  if (shouldEnableSwagger()) {
+    const config = new DocumentBuilder()
+      .setTitle('Sistema de Medicamentos API')
+      .setDescription('Backend API for a medication reminder mobile application.')
+      .setVersion('1.0.0')
+      .addBearerAuth()
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
+  }
 
   await app.listen(port);
 }
