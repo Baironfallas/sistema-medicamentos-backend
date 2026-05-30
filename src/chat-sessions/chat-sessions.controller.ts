@@ -7,6 +7,7 @@ import { ChatSessionsService } from './chat-sessions.service';
 import { ChatSessionDetailResponseDto } from './dto/chat-session-detail-response.dto';
 import { ChatSessionResponseDto } from './dto/chat-session-response.dto';
 import { CreateChatSessionDto } from './dto/create-chat-session.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiBearerAuth()
 @ApiTags('chat-sessions')
@@ -16,6 +17,7 @@ export class ChatSessionsController {
   constructor(private readonly chatSessionsService: ChatSessionsService) { }
 
   @Post()
+  @Throttle({ chat: { } })
   @ApiCreatedResponse({ type: ChatSessionDetailResponseDto })
   create(
     @Body() dto: CreateChatSessionDto,
