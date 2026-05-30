@@ -1,11 +1,7 @@
-import {
-    ArgumentsHost,
-    Catch,
-    ExceptionFilter,
-    HttpException,
-    HttpStatus,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, } from '@nestjs/common';
 import { Request, Response } from 'express';
+
+const TOO_MANY_REQUESTS_STATUS_CODE = 429;
 
 type ErrorResponse = {
     statusCode: number;
@@ -32,14 +28,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
             ? exception.getResponse()
             : null;
 
-        const message = this.getMessage(exceptionResponse);
+        const message = this.getMessage(statusCode, exceptionResponse);
 
         const errorResponse: ErrorResponse = {
             statusCode,
             message,
-            error: isHttpException
-                ? exception.name
-                : 'InternalServerErrorException',
+            error: this.getErrorName(statusCode, exception),
             path: request.url,
             timestamp: new Date().toISOString(),
         };
@@ -47,7 +41,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         response.status(statusCode).json(errorResponse);
     }
 
-    private getMessage(exceptionResponse: string | object | null): string | string[] {
+    private getMessage(
+        statusCode: number,
+        exceptionResponse: string | object | null,
+    ): string | string[] {
+        if (statusCode === TOO_MANY_REQUESTS_STATUS_CODE) {
+            return 'Demasiados intentos. Intenta nuevamente en unos segundos.';
+        }
+
         if (typeof exceptionResponse === 'string') {
             return exceptionResponse;
         }
@@ -65,5 +66,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
         }
 
         return 'Ha ocurrido un error inesperado.';
+    }
+
+    private getErrorName(statusCode: number, exception: unknown): string {
+        if (statusCode === TOO_MANY_REQUESTS_STATUS_CODE) {
+            return 'Too Many Requests';
+        }
+
+        if (exception instanceof HttpException) {
+            return exception.name;
+        }
+
+        return 'InternalServerErrorException';
     }
 }
